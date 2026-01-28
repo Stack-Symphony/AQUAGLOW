@@ -136,35 +136,44 @@ Additional Pages:
 - Google Gemini API key
 - Modern browser with ES Modules support
 
-### Environment Variables
-```bash
-API_KEY=your_gemini_api_key_here
-
-
-### Development
+🛠️ Development
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
+
+# Build for production
 npm run build
 
 
-### Direct Browser Usage
-The application supports browser-native ES modules and can run without a build step for development.
+🌐 Direct Browser Usage
 
-### 🤖 AI Integration
+The app is configured for browser-native ES modules — no build step required for development.
+
+Simply open index.html in a modern browser to get started.
+
+🤖 AI Integration
 Gemini Service (services/geminiService.ts)
 
--Model: gemini-3-flash-preview
--Context-aware recommendations
--Graceful fallback handling on API failure
+Model: gemini-3-flash-preview
 
-### Prompt Strategy
+Temperature: 0.7 (balanced creativity)
 
--Vehicle context injection
--Responses limited to under 30 words
--Stage-aware prompts per conversation phase
+Prompt Engineering: Context-aware vehicle recommendations
 
-### 💰 Pricing Model
-Base Prices
+Error Handling: Graceful fallback responses on API failure
+
+Chatbot Prompt Strategy
+
+Context Injection: Vehicle details and available packages
+
+Length Control: Responses limited to under 30 words
+
+Stage Awareness: Different prompts per conversation phase
+
+💰 Pricing Model
+Base Prices by Vehicle Type
 Vehicle Type	Base Price
 Sedan	R100
 Coupe	R120
@@ -172,97 +181,132 @@ Hatchback	R140
 SUV	R160
 Truck	R200
 Luxury	R250
-
 Service Packages
-Eco Refresh: R0
 
-Aqua Glow Deluxe: R300
+Eco Refresh (R0 surcharge) – Basic exterior wash
 
-Executive Detail: R850
+Aqua Glow Deluxe (R300 surcharge) – Interior + exterior
+
+Executive Detail (R850 surcharge) – Premium restoration
 
 Extra Services
+
 Interior Rejuvenation: R150
 
 Nano-Ceramic Wax: R200
 
 Precision Engine Clean: R300
 
-Total Price Formula:
+Total Price Formula
+Base Price + Package Surcharge + Extras Total
 
-mathematica
-Copy code
-Base Price + Package Surcharge + Extras
 📱 Responsive Design
 Breakpoint	Layout
-Mobile (<640px)	Single column
-Tablet (640–1024px)	Two-column grids
-Desktop (1024px+)	Multi-column layouts
+Mobile (< 640px)	Single column, stacked
+Tablet (640px–1024px)	2-column grids
+Desktop (1024px+)	Multi-column, sidebars
+Touch Optimization
 
-Touch-optimized with large tap targets and mobile-first animations.
+Adequate tap targets (minimum 44px)
+
+Gesture-friendly spacing
+
+Mobile-first animations
 
 🔐 Security & Best Practices
 Implemented
-Environment variables for API keys
+
+API keys via environment variables
 
 Client-side form validation
 
 TypeScript for type safety
 
-Error handling for AI failures
+Error boundaries for AI failures
 
 Recommended for Production
+
 HTTPS enforcement
 
-Content Security Policy (CSP)
+Content Security Policy (CSP) headers
 
-API rate limiting
+Rate limiting on API calls
 
-Payment gateway integration (Stripe/PayPal)
+Payment gateway integration (Stripe / PayPal)
 
 📈 Backlog & Roadmap
 High Priority
-AG-001: Improve Gemini prompting
+
+AG-001: Refine Gemini prompting for better recommendations
 
 AG-006: Secure payment gateway integration
 
 Medium Priority
-AG-003: Geolocation support
 
-AG-004: Text-to-speech confirmations
+AG-003: Geolocation for mobile service radius
+
+AG-004: Text-to-speech for confirmation
 
 Low Priority
+
 AG-005: Loyalty points program
 
 🎯 Performance Optimizations
 Implemented
-useMemo for pricing calculations
 
-useCallback for stable references
+useMemo for price calculations
 
-Lazy loading
+useCallback for stable function references
 
-Conditional rendering
+Lazy image loading
 
-Planned Improvements
-Route-based code splitting
+Conditional component rendering
+
+Potential Improvements
+
+Code splitting by route
 
 Image optimization pipeline
 
-Service worker for offline support
+Service worker for offline capabilities
 
 🐛 Troubleshooting
 Common Issues
-Gemini API errors: Verify API_KEY
 
-Styles not loading: Check Tailwind CDN
+Gemini API Errors: Check API_KEY environment variable
 
-Module import errors: Ensure ES module support
+Styles Not Loading: Verify Tailwind CDN in index.html
 
-Date validation issues: Check timezone settings
+Module Import Errors: Ensure browser supports ES modules
+
+Date Validation Issues: Check timezone settings
 
 Debug Tools
-Browser DevTools
 
-Network tab for API calls
+Browser DevTools for React
+
+Network tab for API requests
 
 Console for TypeScript errors
+
+📄 License & Attribution
+
+Icons: Custom SVG components
+
+Fonts: Google Fonts (Plus Jakarta Sans)
+
+Colors: Tailwind CSS palette
+
+AI: Google Gemini API
+
+© 2024 AquaGlow Auto Spa. All rights reserved.
+
+🚀 Quick Start
+
+Clone the repository
+
+Add your Gemini API key to environment variables
+
+Open index.html in a modern browser
+
+Click "Book Now" to start the flow
