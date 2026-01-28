@@ -19,23 +19,9 @@ The application is designed to provide users with personalized car wash recommen
 ---
 
 ## 📁 Project Structure
-frontend/
-├── components/                    # React components
-│   ├── BookingForm.tsx           # Appointment booking interface
-│   ├── Chatbot.tsx               # AI assistant with Gemini integration
-│   ├── CheckoutPage.tsx          # Payment processing simulation
-│   ├── Layout.tsx                # Basic page layout structure
-│   ├── Navbar.tsx                # Navigation with step tracking
-│   ├── RecommendationWizard.tsx  # 3-step vehicle profiling wizard
-│   └── ServiceCard.tsx           # Display wash packages
-├── services/
-│   └── geminiService.ts          # AI recommendation service
-├── types.ts                      # TypeScript interfaces & enums
-├── constants.tsx                 # App constants, packages, icons
-├── App.tsx                       # Main application component
-├── index.tsx                     # React entry point
-├── index.html                    # HTML template with Tailwind
-└── backlog.json                  # Development roadmap & tasks
+
+<img width="579" height="324" alt="image" src="https://github.com/user-attachments/assets/ae558da6-f595-413b-b17c-ce60b8a286e4" />
+
 
 
 
