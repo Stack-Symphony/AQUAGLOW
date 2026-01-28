@@ -139,16 +139,18 @@ Additional Pages:
 ### Environment Variables
 ```bash
 API_KEY=your_gemini_api_key_here
-Development
-bash
-Copy code
+
+
+### Development
 npm install
 npm run dev
 npm run build
-Direct Browser Usage
+
+
+### Direct Browser Usage
 The application supports browser-native ES modules and can run without a build step for development.
 
-🤖 AI Integration
+### 🤖 AI Integration
 Gemini Service (services/geminiService.ts)
 
 Model: gemini-3-flash-preview
