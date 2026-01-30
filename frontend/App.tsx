@@ -68,7 +68,7 @@ const App: React.FC = () => {
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-40 animate-in fade-in zoom-in duration-1000">
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img 
-          src="images/fresh.jpg"
+          src="/images/fresh.jpg"
           className="w-full h-full object-cover opacity-30 blur-[2px] scale-105"
           alt="Car wash background"
           loading="eager"
