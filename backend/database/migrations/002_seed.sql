@@ -1,4 +1,4 @@
--- AquaGlow Auto Spa - Initial Seed Data
+﻿-- AquaGlow Auto Spa - Initial Seed Data
 
 -- Insert initial services
 INSERT INTO services (id, name, description, base_price, duration, vehicle_types, category, features, image_url) VALUES
