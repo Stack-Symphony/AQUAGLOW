@@ -68,7 +68,7 @@ const App: React.FC = () => {
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-6 pt-40 animate-in fade-in zoom-in duration-1000">
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img 
-          src="images/fresh.jpg"
+          src="./images/fresh.jpg"
           className="w-full h-full object-cover opacity-30 blur-[2px] scale-105"
           alt="Car wash background"
           loading="eager"
@@ -150,7 +150,7 @@ const App: React.FC = () => {
     <div className="py-24 animate-in fade-in slide-in-from-bottom-12 duration-1000 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center px-6">
       <div className="relative rounded-[4rem] overflow-hidden aspect-square shadow-2xl border border-white/5 group">
         <img 
-          src="images/equip.jpg" 
+          src="./images/equip.jpg" 
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" 
           alt="Detailing action" 
         />
