@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import { Booking, Customer, Service } from '../models';
+import { Booking, Customer } from '../models';
 import { BookingStatus, AppointmentType } from '../models/Booking';
-import { v4 as uuidv4 } from 'uuid';
 import { Op } from 'sequelize';
 import { calculatePrice } from '../utils/priceCalculator';
 
@@ -27,13 +26,21 @@ export const bookingController = {
         paymentMethod
       } = req.body;
 
+      // Validate required fields
+      if (!customerEmail || !date || !time || !serviceType || !vehicleType) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields: customerEmail, date, time, serviceType, vehicleType'
+        });
+      }
+
       // Find or create customer
       let customer = await Customer.findOne({ where: { email: customerEmail } });
       if (!customer) {
         customer = await Customer.create({
-          name: customerName,
+          name: customerName || 'Guest Customer',
           email: customerEmail,
-          phone,
+          phone: phone || undefined,
         });
       }
 
@@ -41,8 +48,8 @@ export const bookingController = {
       const price = await calculatePrice({
         serviceType,
         vehicleType,
-        extras,
-        condition,
+        extras: extras || [],
+        condition: condition || 'good',
       });
 
       // Generate reference number
@@ -51,21 +58,21 @@ export const bookingController = {
       // Create booking
       const booking = await Booking.create({
         customerId: customer.id,
-        date,
+        date: new Date(date),
         time,
         serviceType,
         vehicleType,
-        vehicleYear,
-        vehicleMake,
-        vehicleModel,
-        condition,
+        vehicleYear: vehicleYear || undefined,
+        vehicleMake: vehicleMake || undefined,
+        vehicleModel: vehicleModel || undefined,
+        condition: condition || undefined,
         extras: extras || [],
         appointmentType: appointmentType || AppointmentType.STUDIO,
         totalPrice: price,
         status: BookingStatus.PENDING,
-        paymentMethod,
+        paymentMethod: paymentMethod || undefined,
         paymentStatus: 'pending',
-        notes,
+        notes: notes || undefined,
         referenceNumber,
       });
 
@@ -80,6 +87,7 @@ export const bookingController = {
         message: 'Booking created successfully'
       });
     } catch (error: any) {
+      console.error('❌ Create booking error:', error);
       res.status(500).json({
         success: false,
         message: 'Error creating booking',
@@ -92,8 +100,8 @@ export const bookingController = {
   async getAllBookings(req: Request, res: Response) {
     try {
       const {
-        page = 1,
-        limit = 20,
+        page = '1',
+        limit = '20',
         status,
         dateFrom,
         dateTo,
@@ -106,25 +114,28 @@ export const bookingController = {
 
       const where: any = {};
       
-      if (status) where.status = status;
+      if (status) {
+        where.status = status;
+      }
+      
       if (dateFrom && dateTo) {
         where.date = {
           [Op.between]: [new Date(dateFrom as string), new Date(dateTo as string)]
         };
       }
 
-      const include: any[] = [{ model: Customer, as: 'customer' }];
-      
-      if (customerEmail) {
-        include[0].where = { email: customerEmail };
-      }
+      const include: any[] = [{ 
+        model: Customer, 
+        as: 'customer',
+        ...(customerEmail && { where: { email: customerEmail } })
+      }];
 
       const { count, rows } = await Booking.findAndCountAll({
         where,
         include,
         limit: limitNum,
         offset,
-        order: [['date', 'DESC']]
+        order: [['date', 'DESC'], ['time', 'DESC']]
       });
 
       res.json({
@@ -138,6 +149,7 @@ export const bookingController = {
         }
       });
     } catch (error: any) {
+      console.error('❌ Get all bookings error:', error);
       res.status(500).json({
         success: false,
         message: 'Error fetching bookings',
@@ -167,6 +179,7 @@ export const bookingController = {
         data: booking
       });
     } catch (error: any) {
+      console.error('❌ Get booking by ID error:', error);
       res.status(500).json({
         success: false,
         message: 'Error fetching booking',
@@ -197,6 +210,7 @@ export const bookingController = {
         data: booking
       });
     } catch (error: any) {
+      console.error('❌ Get booking by reference error:', error);
       res.status(500).json({
         success: false,
         message: 'Error fetching booking',
@@ -210,6 +224,14 @@ export const bookingController = {
     try {
       const { id } = req.params;
       const { status, notes } = req.body;
+
+      // Validate status
+      if (!Object.values(BookingStatus).includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Must be one of: ${Object.values(BookingStatus).join(', ')}`
+        });
+      }
 
       const booking = await Booking.findByPk(id);
       
@@ -229,20 +251,26 @@ export const bookingController = {
       if (status === BookingStatus.COMPLETED && booking.paymentStatus === 'paid') {
         const customer = await Customer.findByPk(booking.customerId);
         if (customer) {
-          const pointsToAdd = Math.floor(booking.totalPrice / 100); // 1 point per R100
+          const pointsToAdd = Math.floor(Number(booking.totalPrice) / 100); // 1 point per R100
           await customer.update({
             loyaltyPoints: customer.loyaltyPoints + pointsToAdd,
-            totalSpent: parseFloat(customer.totalSpent.toString()) + parseFloat(booking.totalPrice.toString())
+            totalSpent: Number(customer.totalSpent) + Number(booking.totalPrice)
           });
         }
       }
 
+      // Fetch updated booking with customer
+      const updatedBooking = await Booking.findByPk(id, {
+        include: [{ model: Customer, as: 'customer' }]
+      });
+
       res.json({
         success: true,
-        data: booking,
+        data: updatedBooking,
         message: 'Booking status updated successfully'
       });
     } catch (error: any) {
+      console.error('❌ Update booking status error:', error);
       res.status(500).json({
         success: false,
         message: 'Error updating booking',
@@ -256,6 +284,15 @@ export const bookingController = {
     try {
       const { id } = req.params;
       const { paymentStatus, paymentMethod } = req.body;
+
+      // Validate payment status
+      const validStatuses = ['pending', 'paid', 'failed'];
+      if (!validStatuses.includes(paymentStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid payment status. Must be one of: ${validStatuses.join(', ')}`
+        });
+      }
 
       const booking = await Booking.findByPk(id);
       
@@ -276,12 +313,17 @@ export const bookingController = {
         await booking.update({ status: BookingStatus.CONFIRMED });
       }
 
+      const updatedBooking = await Booking.findByPk(id, {
+        include: [{ model: Customer, as: 'customer' }]
+      });
+
       res.json({
         success: true,
-        data: booking,
+        data: updatedBooking,
         message: 'Payment status updated successfully'
       });
     } catch (error: any) {
+      console.error('❌ Update payment status error:', error);
       res.status(500).json({
         success: false,
         message: 'Error updating payment status',
@@ -293,11 +335,28 @@ export const bookingController = {
   // Get available time slots for a date
   async getAvailableSlots(req: Request, res: Response) {
     try {
-      const { date } = req.params;
+      // FIX: Changed from req.params to req.query to match your Postman GET request
+      const { date } = req.query;
       
+      if (!date) {
+        return res.status(400).json({
+          success: false,
+          message: 'Date parameter is required. Use ?date=YYYY-MM-DD'
+        });
+      }
+
+      // Validate date format
+      const requestedDate = new Date(date as string);
+      if (isNaN(requestedDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid date format. Use YYYY-MM-DD'
+        });
+      }
+
       const bookings = await Booking.findAll({
         where: {
-          date: new Date(date),
+          date: requestedDate,
           status: {
             [Op.in]: [BookingStatus.PENDING, BookingStatus.CONFIRMED]
           }
@@ -307,19 +366,21 @@ export const bookingController = {
 
       const bookedSlots = bookings.map(b => b.time);
       
-      // Define available slots (9 AM to 5 PM, every 2 hours)
       const allSlots = ['09:00 AM', '11:00 AM', '01:00 PM', '03:00 PM', '05:00 PM'];
       const availableSlots = allSlots.filter(slot => !bookedSlots.includes(slot));
 
       res.json({
         success: true,
         data: {
-          date,
+          date: date,
           availableSlots,
-          bookedSlots
+          bookedSlots,
+          totalSlots: allSlots.length,
+          availableCount: availableSlots.length
         }
       });
     } catch (error: any) {
+      console.error('❌ Get available slots error:', error);
       res.status(500).json({
         success: false,
         message: 'Error fetching available slots',
@@ -358,17 +419,26 @@ export const bookingController = {
         });
       }
 
+      const cancellationNote = reason 
+        ? `${booking.notes || ''}\n[Cancelled: ${reason}]` 
+        : `${booking.notes || ''}\n[Cancelled by user]`;
+
       await booking.update({
         status: BookingStatus.CANCELLED,
-        notes: reason ? `${booking.notes || ''}\nCancelled: ${reason}` : booking.notes
+        notes: cancellationNote.trim()
+      });
+
+      const cancelledBooking = await Booking.findByPk(id, {
+        include: [{ model: Customer, as: 'customer' }]
       });
 
       res.json({
         success: true,
-        data: booking,
+        data: cancelledBooking,
         message: 'Booking cancelled successfully'
       });
     } catch (error: any) {
+      console.error('❌ Cancel booking error:', error);
       res.status(500).json({
         success: false,
         message: 'Error cancelling booking',
@@ -381,6 +451,8 @@ export const bookingController = {
   async getBookingStats(req: Request, res: Response) {
     try {
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - today.getDay());
@@ -390,6 +462,7 @@ export const bookingController = {
         pendingBookings,
         confirmedBookings,
         completedBookings,
+        cancelledBookings,
         monthlyRevenue,
         weeklyBookings,
         todayBookings
@@ -398,9 +471,11 @@ export const bookingController = {
         Booking.count({ where: { status: BookingStatus.PENDING } }),
         Booking.count({ where: { status: BookingStatus.CONFIRMED } }),
         Booking.count({ where: { status: BookingStatus.COMPLETED } }),
+        Booking.count({ where: { status: BookingStatus.CANCELLED } }),
         Booking.sum('totalPrice', {
           where: {
             status: BookingStatus.COMPLETED,
+            paymentStatus: 'paid',
             date: { [Op.gte]: startOfMonth }
           }
         }),
@@ -411,7 +486,7 @@ export const bookingController = {
         }),
         Booking.count({
           where: {
-            date: today.toISOString().split('T')[0]
+            date: today
           }
         })
       ]);
@@ -423,12 +498,15 @@ export const bookingController = {
           pendingBookings,
           confirmedBookings,
           completedBookings,
+          cancelledBookings,
           monthlyRevenue: monthlyRevenue || 0,
           weeklyBookings,
-          todayBookings
+          todayBookings,
+          generatedAt: new Date().toISOString()
         }
       });
     } catch (error: any) {
+      console.error('❌ Get booking stats error:', error);
       res.status(500).json({
         success: false,
         message: 'Error fetching booking statistics',

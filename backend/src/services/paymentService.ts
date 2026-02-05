@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { config } from '../config/env';
 import { Booking } from '../models';
+import { BookingStatus } from '../types';     // ← add this import
 
 export class PaymentService {
   private stripe: Stripe;
@@ -74,7 +75,7 @@ export class PaymentService {
       if (booking) {
         await booking.update({
           paymentStatus: 'paid',
-          status: 'confirmed',
+          status: BookingStatus.CONFIRMED,          // ← fixed here
         });
         
         // Send confirmation email

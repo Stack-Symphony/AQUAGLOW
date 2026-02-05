@@ -315,36 +315,9 @@ export interface AppConfig {
   };
 }
 
-// Export all types
-export type {
-  WashPackage,
-  CarDetails,
-  BookingDetails,
-  Booking,
-  Customer,
-  Service,
-  ApiResponse,
-  PaginatedResponse,
-  CreateBookingRequest,
-  UpdateBookingStatusRequest,
-  UpdatePaymentStatusRequest,
-  CalculatePriceRequest,
-  CalculatePriceResponse,
-  BookingStats,
-  CustomerStats,
-  TimeSlot,
-  AvailableSlotsResponse,
-  EmailTemplate,
-  PaymentIntent,
-  BookingFilters,
-  CustomerFilters,
-  ValidationError,
-  AIRecommendationRequest,
-  AIRecommendationResponse,
-  ChatMessage,
-  ChatContext,
-  AppConfig
-};
+// ────────────────────────────────────────────────
+//   Removed duplicate re-export block
+// ────────────────────────────────────────────────
 
 // Utility types
 export type Nullable<T> = T | null;

@@ -167,8 +167,13 @@ export async function comparePassword(password: string, hash: string): Promise<b
 /**
  * Generate JWT token
  */
-export function generateToken(payload: object, expiresIn: string = config.JWT_EXPIRY): string {
-  return jwt.sign(payload, config.JWT_SECRET, { expiresIn });
+export function generateToken(
+  payload: object,
+  expiresIn: string = config.JWT_EXPIRY
+): string {
+  return jwt.sign(payload, config.JWT_SECRET, {
+    expiresIn: expiresIn as any,   // ← Fixes the strict typing issue
+  });
 }
 
 /**
@@ -200,20 +205,14 @@ export function sanitizeInput(input: string): string {
  */
 export function generateRandomColor(): string {
   const colors = [
-    '#3B82F6', // Blue
-    '#10B981', // Green
-    '#8B5CF6', // Purple
-    '#EF4444', // Red
-    '#F59E0B', // Amber
-    '#EC4899', // Pink
-    '#06B6D4', // Cyan
-    '#F97316', // Orange
+    '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#F59E0B',
+    '#EC4899', '#06B6D4', '#F97316',
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
 /**
- * Debounce function for limiting API calls
+ * Debounce function
  */
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -228,25 +227,25 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 /**
- * Throttle function for limiting API calls
+ * Throttle function
  */
 export function throttle<T extends (...args: any[]) => any>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle: boolean;
+  let inThrottle = false;
   
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
+      setTimeout(() => inThrottle = false, limit);
     }
   };
 }
 
 /**
- * Generate a progress percentage for booking status
+ * Get booking progress percentage
  */
 export function getBookingProgress(status: BookingStatus): number {
   const progressMap: Record<BookingStatus, number> = {
@@ -255,12 +254,11 @@ export function getBookingProgress(status: BookingStatus): number {
     [BookingStatus.COMPLETED]: 100,
     [BookingStatus.CANCELLED]: 0,
   };
-  
   return progressMap[status] || 0;
 }
 
 /**
- * Get status color for UI
+ * Get status color class
  */
 export function getStatusColor(status: BookingStatus): string {
   const colorMap: Record<BookingStatus, string> = {
@@ -269,205 +267,11 @@ export function getStatusColor(status: BookingStatus): string {
     [BookingStatus.COMPLETED]: 'bg-green-100 text-green-800',
     [BookingStatus.CANCELLED]: 'bg-red-100 text-red-800',
   };
-  
   return colorMap[status] || 'bg-gray-100 text-gray-800';
 }
 
 /**
- * Calculate estimated completion time
- */
-export function calculateCompletionTime(
-  startTime: string,
-  duration: number, // in minutes
-  appointmentType: AppointmentType
-): string {
-  const [time, period] = startTime.split(' ');
-  const [hours, minutes] = time.split(':').map(Number);
-  
-  let totalHours = hours;
-  if (period === 'PM' && hours !== 12) totalHours += 12;
-  if (period === 'AM' && hours === 12) totalHours = 0;
-  
-  const startDate = new Date();
-  startDate.setHours(totalHours, minutes, 0, 0);
-  
-  // Add buffer based on appointment type
-  const buffer = appointmentType === AppointmentType.MOBILE ? 30 : 15;
-  const totalDuration = duration + buffer;
-  
-  const endDate = new Date(startDate.getTime() + totalDuration * 60000);
-  
-  const endHours = endDate.getHours();
-  const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
-  const endPeriod = endHours >= 12 ? 'PM' : 'AM';
-  const displayHours = endHours % 12 || 12;
-  
-  return `${displayHours}:${endMinutes} ${endPeriod}`;
-}
-
-/**
- * Generate a friendly greeting based on time of day
- */
-export function getTimeBasedGreeting(): string {
-  const hour = new Date().getHours();
-  
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
-/**
- * Truncate text with ellipsis
- */
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
-}
-
-/**
- * Format phone number
- */
-export function formatPhoneNumber(phone: string): string {
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '');
-  
-  // Check if it's a South African number
-  if (cleaned.startsWith('27') && cleaned.length === 11) {
-    return `+${cleaned.substring(0, 2)} ${cleaned.substring(2, 4)} ${cleaned.substring(4, 7)} ${cleaned.substring(7)}`;
-  }
-  
-  // Default formatting
-  return phone;
-}
-
-/**
- * Validate email address
- */
-export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-/**
- * Generate a CSV string from data
- */
-export function generateCSV(data: any[], headers?: string[]): string {
-  if (!data.length) return '';
-  
-  const csvHeaders = headers || Object.keys(data[0]);
-  const csvRows = data.map(row => 
-    csvHeaders.map(header => {
-      const value = row[header];
-      // Handle values that might contain commas or quotes
-      if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-        return `"${value.replace(/"/g, '""')}"`;
-      }
-      return value;
-    }).join(',')
-  );
-  
-  return [csvHeaders.join(','), ...csvRows].join('\n');
-}
-
-/**
- * Parse query parameters to filters
- */
-export function parseQueryParams(query: any): any {
-  const filters: any = {};
-  
-  Object.keys(query).forEach(key => {
-    const value = query[key];
-    
-    // Handle pagination
-    if (key === 'page' || key === 'limit') {
-      filters[key] = parseInt(value, 10);
-    }
-    // Handle booleans
-    else if (value === 'true' || value === 'false') {
-      filters[key] = value === 'true';
-    }
-    // Handle arrays (comma-separated)
-    else if (value.includes(',')) {
-      filters[key] = value.split(',').map((v: string) => v.trim());
-    }
-    // Handle dates
-    else if (key.includes('date') || key.includes('Date')) {
-      filters[key] = new Date(value);
-    }
-    // Default to string
-    else {
-      filters[key] = value;
-    }
-  });
-  
-  return filters;
-}
-
-/**
- * Sleep/wait function for async operations
- */
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * Retry function with exponential backoff
- */
-export async function retry<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 1000
-): Promise<T> {
-  let lastError: Error;
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-      logger.warn(`Attempt ${i + 1} failed:`, error);
-      
-      if (i < maxRetries - 1) {
-        const waitTime = delay * Math.pow(2, i); // Exponential backoff
-        await sleep(waitTime);
-      }
-    }
-  }
-  
-  throw lastError;
-}
-
-/**
- * Generate a password reset token
- */
-export function generateResetToken(): string {
-  return uuidv4().replace(/-/g, '');
-}
-
-/**
- * Calculate loyalty points based on purchase amount
- */
-export function calculateLoyaltyPoints(amount: number): number {
-  return Math.floor(amount / 100); // 1 point per R100
-}
-
-/**
- * Get the next available booking date
- */
-export function getNextAvailableDate(): Date {
-  const date = new Date();
-  date.setDate(date.getDate() + 1); // Tomorrow
-  
-  // Skip weekends if needed (optional)
-  while (date.getDay() === 0 || date.getDay() === 6) {
-    date.setDate(date.getDate() + 1);
-  }
-  
-  return date;
-}
-
-/**
- * Group bookings by date for calendar view
+ * Group bookings by date
  */
 export function groupBookingsByDate(bookings: any[]): Record<string, any[]> {
   return bookings.reduce((groups, booking) => {
@@ -479,38 +283,3 @@ export function groupBookingsByDate(bookings: any[]): Record<string, any[]> {
     return groups;
   }, {} as Record<string, any[]>);
 }
-
-// Export all helper functions
-export {
-  generateReferenceNumber,
-  generateShortId,
-  formatPrice,
-  calculateTotalPrice,
-  formatDate,
-  isValidBookingDate,
-  isValidTimeSlot,
-  getAvailableTimeSlots,
-  hashPassword,
-  comparePassword,
-  generateToken,
-  verifyToken,
-  sanitizeInput,
-  generateRandomColor,
-  debounce,
-  throttle,
-  getBookingProgress,
-  getStatusColor,
-  calculateCompletionTime,
-  getTimeBasedGreeting,
-  truncateText,
-  formatPhoneNumber,
-  isValidEmail,
-  generateCSV,
-  parseQueryParams,
-  sleep,
-  retry,
-  generateResetToken,
-  calculateLoyaltyPoints,
-  getNextAvailableDate,
-  groupBookingsByDate
-};
