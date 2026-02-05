@@ -10,5 +10,11 @@ router.get('/:id', customerController.getCustomerById);
 router.get('/email/:email', customerController.getCustomerByEmail);
 router.get('/:id/stats', customerController.getCustomerStats);
 router.put('/:id', customerController.updateCustomer);
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: "Customer list retrieved (Protected route placeholder)"
+  });
+});
 
 export default router;
