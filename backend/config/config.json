@@ -1,0 +1,25 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "Koreaisthebomb24",
+    "database": "aquaglow_db",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "port": 5432,
+    "logging": false
+  },
+  "test": {
+    "username": "postgres",
+    "password": "Koreaisthebomb24",
+    "database": "aquaglow_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "Koreaisthebomb24",
+    "database": "aquaglow_prod",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

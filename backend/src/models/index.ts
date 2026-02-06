@@ -1,13 +1,19 @@
-import Booking from './Booking';
-import Customer from './Customer';
-import Service from './Service';
+// src/models/index.ts
+// Central barrel file to re-export all models + associations
 
-// Define associations
-Booking.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' });
-Customer.hasMany(Booking, { foreignKey: 'customerId', as: 'bookings' });
+// Import individual models (relative to this file)
+import { default as Booking } from './Booking';
+import { default as Customer } from './Customer';
+import { default as Service } from './Service';
 
+// IMPORTANT: Import associations LAST — after all models are loaded
+import './associations';
+
+// Export named exports (preferred way for TypeScript)
 export { Booking, Customer, Service };
 
+
+// Optional: Export as default object (if some old code expects it)
 export default {
   Booking,
   Customer,
